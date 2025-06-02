@@ -1,10 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <vector>
 #include <iomanip>
 #include <limits>
 using namespace std;
+
+const int MAX_USERS = 100;
+const int MAX_ITEMS = 50;
 
 struct User {
     string username;
@@ -14,33 +16,34 @@ struct User {
 };
 
 // Fungsi untuk memuat data pengguna dari file.txt
-vector<User> pengguna() {
-    vector<User> daftarPengguna;
+int pengguna(User daftarPengguna[]) {
     ifstream file("users.txt");
     User user;
-    while(file>>user.username>>user.password>>user.role) {
+    int count = 0;
+    while(file>>user.username>>user.password>>user.role && count < MAX_USERS) {
         if(user.role == "customer") {
             file>>user.poin;
         } else {
             user.poin = 0;
         }
-        daftarPengguna.push_back(user);
+        daftarPengguna[count] = user;
+        count++;
     }
     file.close();
-    return daftarPengguna;
+    return count;
 }
 
 // Simpan data pengguna ke file
-void simpanPengguna(const vector<User>& daftarPengguna) {
+void simpanPengguna(const User daftarPengguna[], int jumlahPengguna) {
     ofstream file("users.txt");
-    for(size_t i=0;i<daftarPengguna.size();++i) {
+    for(int i=0;i<jumlahPengguna;++i) {
         file<<daftarPengguna[i].username<<" "<<daftarPengguna[i].password<<" "<<daftarPengguna[i].role<<" "<<daftarPengguna[i].poin<<endl;
     }
     file.close();
 }
 
 // Cek login
-int login(const vector<User>& daftarPengguna, string& role) {
+int login(const User daftarPengguna[], int jumlahPengguna, string& role) {
     string username,password;
     cout<<"=== Login ==="<<endl;
     cout<<"Username: ";
@@ -48,7 +51,7 @@ int login(const vector<User>& daftarPengguna, string& role) {
     cout<<"Password: ";
     cin>>password;
 
-    for(size_t i=0;i<daftarPengguna.size();++i) {
+    for(int i=0;i<jumlahPengguna;++i) {
         if(daftarPengguna[i].username == username && daftarPengguna[i].password == password) {
             role = daftarPengguna[i].role;
             return i;
@@ -59,7 +62,12 @@ int login(const vector<User>& daftarPengguna, string& role) {
 }
 
 // Registrasi
-void registrasiPengguna(vector<User>& daftarPengguna) {
+int registrasiPengguna(User daftarPengguna[], int jumlahPengguna) {
+    if(jumlahPengguna >= MAX_USERS) {
+        cout<<"Maksimum pengguna telah tercapai.\n";
+        return jumlahPengguna;
+    }
+    
     User penggunaBaru;
     cout<<"=== Registrasi ==="<<endl;
     cout<<"Username: ";
@@ -72,27 +80,29 @@ void registrasiPengguna(vector<User>& daftarPengguna) {
     cin>>penggunaBaru.role;
     if(penggunaBaru.role != "admin" && penggunaBaru.role != "customer") {
         cout<<"Role tidak valid. Gunakan 'admin' atau 'customer'.\n";
-        return;
+        return jumlahPengguna;
     }
 
     // Cek duplikasi username
-    for(size_t i=0;i<daftarPengguna.size();++i) {
+    for(int i=0;i<jumlahPengguna;++i) {
         if(daftarPengguna[i].username == penggunaBaru.username) {
             cout<<"Username sudah terdaftar.\n";
-            return;
+            return jumlahPengguna;
         }
     }
 
     // Inisialisasi poin
     penggunaBaru.poin = 0;
 
-    daftarPengguna.push_back(penggunaBaru);
-    simpanPengguna(daftarPengguna);
+    daftarPengguna[jumlahPengguna] = penggunaBaru;
+    jumlahPengguna++;
+    simpanPengguna(daftarPengguna, jumlahPengguna);
     cout<<"Registrasi berhasil!\n";
+    return jumlahPengguna;
 }
 
 // Edit akun
-void pengaturanAkun(User& user, const vector<User>& daftarPengguna) {
+void pengaturanAkun(User& user, const User daftarPengguna[], int jumlahPengguna) {
     int pilihan;
     string passwordVerifikasi;
 
@@ -112,7 +122,7 @@ void pengaturanAkun(User& user, const vector<User>& daftarPengguna) {
 
                 // Cek apakah username baru sudah digunakan user lain
                 bool usernameSudahAda = false;
-                for(size_t i=0;i<daftarPengguna.size();++i) {
+                for(int i=0;i<jumlahPengguna;++i) {
                     if(daftarPengguna[i].username == usernameBaru && &daftarPengguna[i] != &user) {
                         usernameSudahAda = true;
                         break;
@@ -293,8 +303,8 @@ pesananItem prosesInputLayanan(int pilihanLayanan) {
 }
 
 //Menampilkan seluruh daftar layanan yang telah dipilih
-void tampilkanLayananTerpilih(const vector<pesananItem>& layananTerpilih){
-	if (layananTerpilih.empty()){
+void tampilkanLayananTerpilih(const pesananItem layananTerpilih[], int jumlahLayanan){
+	if (jumlahLayanan == 0){
 		cout<<"\nAnda tidak memilih layanan apapun" <<endl;
 		return;
 	}
@@ -302,7 +312,7 @@ void tampilkanLayananTerpilih(const vector<pesananItem>& layananTerpilih){
 	double totalKeseluruhan = 0.0;
 	cout<<fixed <<setprecision(0);
 	
-	for (size_t i = 0; i < layananTerpilih.size(); ++i){
+	for (int i = 0; i < jumlahLayanan; ++i){
 		const pesananItem& item = layananTerpilih[i];
 		cout<<"--------------------------------" <<endl;
 		cout<<"Pesanan ke-" <<(i+1) <<" : " <<endl;
@@ -337,10 +347,10 @@ struct Ulasan {
 };
 
 // struk transaksi disimpan di struk.txt
-void simpanLayananTerpilih(const vector<pesananItem>& layananTerpilih, string namaCustomer){
+void simpanLayananTerpilih(const pesananItem layananTerpilih[], int jumlahLayanan, string namaCustomer){
 	ofstream struk;
 	struk.open("struk.txt", ios::app);
-	if (layananTerpilih.empty()){
+	if (jumlahLayanan == 0){
 		cout<<"\nAnda tidak memilih layanan apapun" <<endl;
 		return;
 	}
@@ -348,7 +358,7 @@ void simpanLayananTerpilih(const vector<pesananItem>& layananTerpilih, string na
 	double totalKeseluruhan = 0.0;
 	struk<<fixed<<setprecision(0);
 	
-	for (size_t i = 0; i < layananTerpilih.size(); ++i){
+	for (int i = 0; i < jumlahLayanan; ++i){
 		const pesananItem& item = layananTerpilih[i];
 		struk<<"--------------------------------" <<endl;
 		struk<<"Pesanan ke-" <<(i+1) <<" : " <<endl;
@@ -377,7 +387,8 @@ void simpanLayananTerpilih(const vector<pesananItem>& layananTerpilih, string na
 }
 
 int main() {
-    vector<User> daftarPengguna = pengguna();
+    User daftarPengguna[MAX_USERS];
+    int jumlahPengguna = pengguna(daftarPengguna);
     int pilihan;
     string role;
     int indeksPenggunaAktif = -1;
@@ -389,7 +400,7 @@ int main() {
         cin>>pilihan;
 
         if(pilihan == 1) {
-            indeksPenggunaAktif = login(daftarPengguna, role);
+            indeksPenggunaAktif = login(daftarPengguna, jumlahPengguna, role);
             if(indeksPenggunaAktif != -1) {
                 cout<<"Login berhasil sebagai "<<role<<".\n";
                 // Menu setelah login
@@ -419,8 +430,8 @@ int main() {
                         
                         switch (pill) {
 		                    case 1:
-		                    	pengaturanAkun(daftarPengguna[indeksPenggunaAktif], daftarPengguna);
-                        		simpanPengguna(daftarPengguna);
+		                    	pengaturanAkun(daftarPengguna[indeksPenggunaAktif], daftarPengguna, jumlahPengguna);
+                        		simpanPengguna(daftarPengguna, jumlahPengguna);
 		                    	break;
 		                    case 2:
 		                    	cout<<"\nAnda menyatakan pesanan telah diterima.\n";
@@ -445,14 +456,15 @@ int main() {
 		                    	break;
 						}
                     } else if(subPilihan == 1 && role =="admin" ){
-                        pengaturanAkun(daftarPengguna[indeksPenggunaAktif], daftarPengguna);
-                        simpanPengguna(daftarPengguna);
+                        pengaturanAkun(daftarPengguna[indeksPenggunaAktif], daftarPengguna, jumlahPengguna);
+                        simpanPengguna(daftarPengguna, jumlahPengguna);
                     } else if(subPilihan == 2 && role == "customer") {
                         // Lihat poin customer
                         cout<<"Poin Anda saat ini: "<<daftarPengguna[indeksPenggunaAktif].poin<<endl;
                     } else if(subPilihan == 3 && role == "customer") {
 					    // Layanan Laundry
-					    vector<pesananItem> keranjangLayanan;
+					    pesananItem keranjangLayanan[MAX_ITEMS];
+					    int jumlahLayananTerpilih = 0;
 					    int pilihanLayanan;
 					    int pilihanAksi;
 					    bool prosesSelesai = false;
@@ -478,7 +490,12 @@ int main() {
 							// Memproses input detail layanan dan mendapatkan PesananItem
 					        pesananItem currentItem = prosesInputLayanan(pilihanLayanan);
 					        if (currentItem.namaLayanan != "") {
-					            keranjangLayanan.push_back(currentItem);
+					            if(jumlahLayananTerpilih < MAX_ITEMS) {
+					                keranjangLayanan[jumlahLayananTerpilih] = currentItem;
+					                jumlahLayananTerpilih++;
+					            } else {
+					                cout<<"Maksimum item telah tercapai.\n";
+					            }
 					        } else {
 					            continue;
 					        }
@@ -499,9 +516,9 @@ int main() {
 					
 					            switch (pilihanAksi){
 									case 1:
-										tampilkanLayananTerpilih(keranjangLayanan);
-										simpanLayananTerpilih(keranjangLayanan, daftarPengguna[indeksPenggunaAktif].username);
-										cout<<"\nProses pembayaran untuk total " <<keranjangLayanan.size() <<" layanan anda." <<endl;
+										tampilkanLayananTerpilih(keranjangLayanan, jumlahLayananTerpilih);
+										simpanLayananTerpilih(keranjangLayanan, jumlahLayananTerpilih, daftarPengguna[indeksPenggunaAktif].username);
+										cout<<"\nProses pembayaran untuk total " <<jumlahLayananTerpilih <<" layanan anda." <<endl;
 										cout<<"Silahkan pilih moda pembayaran" <<endl;
 										cout<<"1. Cash (Tunai)" <<endl;
 										cout<<"2. Transfer Bank" <<endl;
@@ -566,7 +583,7 @@ int main() {
 										break;
 									case 3:
 										cout<<"\nSemua layanan telah dibatalkan. Terimakasih telah berkunjung" <<endl;
-										keranjangLayanan.clear();
+										jumlahLayananTerpilih = 0;
 										prosesSelesai = true;
 										break;
 									default:
@@ -576,7 +593,7 @@ int main() {
 							} while (pilihanAksi != 1 && pilihanAksi != 2 && pilihanAksi != 3);
 	} while (!prosesSelesai);
 		// Tambah POIN
-        int bonusPoin = static_cast<int>(keranjangLayanan.size()) * 10;
+        int bonusPoin = static_cast<int>(jumlahLayananTerpilih) * 10;
         daftarPengguna[indeksPenggunaAktif].poin += bonusPoin;
         cout<<"Anda mendapat "<<bonusPoin<<" poin! Total poin sekarang: "<<daftarPengguna[indeksPenggunaAktif].poin<<endl;
 					} else if(subPilihan == 0) {
@@ -589,7 +606,7 @@ int main() {
                 }
             }
         } else if(pilihan == 2) {
-            registrasiPengguna(daftarPengguna);
+            jumlahPengguna = registrasiPengguna(daftarPengguna, jumlahPengguna);
         } else if(pilihan == 0) {
             cout<<"Terima kasih. Program selesai.\n";
             break;
