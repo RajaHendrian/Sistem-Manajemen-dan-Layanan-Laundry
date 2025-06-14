@@ -37,6 +37,7 @@ struct User {
 
 // struktur untuk menyimpan riwayat transaksi customer
 struct Riwayat {
+	string tanggalLengkap;
     string tanggal;
     string bulan;
     string tahun;
@@ -89,7 +90,6 @@ class LaundrySystem {
 		int registrasiPengguna(User daftarPengguna[], int jumlahPengguna);
 		void pengaturanAkun(User& user, const User daftarPengguna[], int jumlahPengguna);
 		void prosesMenuLayanan();
-		string getTanggalSekarang();
 	    template<typename T>
 		T inputValidasi(const string& pesan);
 		string inputString(const string& pesan);
@@ -133,6 +133,7 @@ class Admin {
 	    User user[MAX_USERS];
 	    int jumlahPengguna;
 		
+		void tampilkanDashboard();
 	    void bacaRiwayatLayanan();
 	    void loadRiwayatTransaksi();
 	    void lihatUserAdmin();
@@ -165,6 +166,89 @@ LaundrySystem::LaundrySystem() {
 // Konstruktor untuk class Admin
 Admin::Admin() {
 	
+}
+
+// Fungsi untuk mendapatkan tanggal sekarang
+string getTanggalSekarang() {
+	time_t now = time(0);
+	tm *ltm = localtime(&now);
+	
+	char buffer[11];
+	strftime(buffer, sizeof(buffer), "%Y-%m-%d", ltm);
+	return string(buffer);
+}
+
+// ===================== DASHBOARD =====================
+void Admin::tampilkanDashboard() {
+    string today = getTanggalSekarang();
+    double totalPendapatan = 0;
+    int totalPesanan = 0;
+    string customerHariIni[100]; // Array untuk menyimpan nama customer
+    int jumlahCustomer = 0; // Counter untuk customer unik
+    
+    loadRiwayatTransaksi();
+    
+    // Loop melalui semua data riwayat
+    for (int i = 0; i < jumlahData; i++) {
+        // Cek apakah transaksi adalah hari ini (untuk semua status)
+        if (riwayat[i].tanggalLengkap == today) {
+            totalPesanan++; // Hitung semua pesanan hari ini tanpa melihat status
+            
+            // Cek apakah customer sudah ada dalam array
+            bool customerSudahAda = false;
+            for (int j = 0; j < jumlahCustomer; j++) {
+                if (customerHariIni[j] == riwayat[i].nama) {
+                    customerSudahAda = true;
+                    break;
+                }
+            }
+            
+            // Jika customer belum ada, tambahkan ke array
+            if (!customerSudahAda && jumlahCustomer < 100) {
+                customerHariIni[jumlahCustomer] = riwayat[i].nama;
+                jumlahCustomer++;
+            }
+            
+            // Hitung pendapatan hanya untuk status "Selesai"
+            if (riwayat[i].status == "Selesai") {
+                string detailTransaksi = riwayat[i].detailTransaksi;
+                size_t posTotalAkhir = detailTransaksi.rfind("TOTAL: Rp");
+                
+                if (posTotalAkhir != string::npos) {
+                    size_t posAwalTotal = posTotalAkhir + 10; // Setelah "TOTAL: Rp"
+                    size_t posAkhirTotal = detailTransaksi.find("\n", posAwalTotal);
+                    
+                    if (posAkhirTotal == string::npos) {
+                        // Jika tidak ada newline, cari sampai akhir string atau karakter '='
+                        posAkhirTotal = detailTransaksi.find("=", posAwalTotal);
+                        if (posAkhirTotal == string::npos) {
+                            posAkhirTotal = detailTransaksi.length();
+                        }
+                    }
+                    
+                    if (posAkhirTotal > posAwalTotal) {
+                        string totalStr = detailTransaksi.substr(posAwalTotal, posAkhirTotal - posAwalTotal);
+                        
+                        // Hapus spasi di awal dan akhir
+                        size_t awal = totalStr.find_first_not_of(" \t\r\n");
+                        size_t akhir = totalStr.find_last_not_of(" \t\r\n");
+                        if (awal != string::npos && akhir != string::npos) {
+                            totalStr = totalStr.substr(awal, akhir - awal + 1);
+                        }
+                        
+                        int totalTransaksi = atoi(totalStr.c_str());
+                        totalPendapatan += totalTransaksi;
+                    }
+                }
+            }
+        }
+    }
+    
+    cout << endl;
+    cout << "\n=== DASHBOARD ADMIN - " << today << " ===\n";
+    cout << "Jumlah Pesanan Hari Ini : " << totalPesanan << endl;
+    cout << "Jumlah Customer Aktif Hari Ini: " << jumlahCustomer << endl;
+    cout << "===============================\n";
 }
 
 // Fungsi untuk menampilkan menu utama
@@ -213,6 +297,7 @@ void LaundrySystem::prosesMenuUtama() {
         }
     }
 }
+
 
 // Fungsi untuk menampilkan menu customer
 void LaundrySystem::tampilkanMenuCustomer() {
@@ -691,15 +776,6 @@ void LaundrySystem::prosesMenuLayanan() {
 	} while (pilihan != 0);
 }
 
-// Fungsi untuk mendapatkan tanggal sekarang
-string LaundrySystem::getTanggalSekarang() {
-	time_t now = time(0);
-	tm *ltm = localtime(&now);
-	
-	char buffer[11];
-	strftime(buffer, sizeof(buffer), "%Y-%m-%d", ltm);
-	return string(buffer);
-}
 
 // Fungsi untuk validasi input angka
 template<typename T>
@@ -1227,10 +1303,6 @@ void LaundrySystem::checkPromo() {
     
     while (getline(file, baris)) {
         if (!baris.empty()) {
-            adaPromo = true;
-            
-            if (nomorPromo == 1) cout << "PROMO!" << endl;
-            
             // Parse data promo (format: Nama|Diskon|MasaBerlaku)
             size_t pos1 = baris.find('|');
             size_t pos2 = baris.find('|', pos1 + 1);
@@ -1244,7 +1316,11 @@ void LaundrySystem::checkPromo() {
                 string masaBerlaku = baris.substr(pos2 + 1);
                 double diskonRP = (diskon / 100) * totalBiaya;
                 
+            
+                
                 if (tanggal <= masaBerlaku && totalSetelahPromo <= totalBiaya) {
+           			adaPromo = true;
+           			if (nomorPromo == 1) cout << "PROMO!" << endl;
 	                cout << nomorPromo << ". " << namaPromo << endl;
 	                cout << "   Diskon: " << diskon << "%" << " : Rp " << diskonRP << endl;
 	                cout << "   Berlaku sampai: " << masaBerlaku << endl;
@@ -1255,7 +1331,6 @@ void LaundrySystem::checkPromo() {
             }
         }
     }
-    
     
     
     file.close();
@@ -1300,12 +1375,13 @@ void LaundrySystem::tampilkanStruk(const string& metodePembayaran, const string&
     cout << "\nTOTAL KESELURUHAN: Rp " << totalBiaya << endl;
     
 	potonganPoin = 0;
+	totalSetelahPromo = 0;
 	cout << endl;
 	checkPromo();
 	TOTAL = totalBiaya;
 	TOTAL -= totalSetelahPromo;
 	
-	if (totalSetelahPromo != 0) {
+	if (totalSetelahPromo > 0) {
     	cout << "\nTOTAL KESELURUHAN SETELAH PROMO: Rp " << fixed << setprecision(0) << TOTAL << endl;
 	}
 	
@@ -1366,7 +1442,7 @@ void LaundrySystem::simpanRiwayatTransaksi(const string& metodePembayaran, const
 	}
 		
 		if (potonganPoin > 0 || totalSetelahPromo > 0) {
-		    file << "SUBTOTAL: Rp" << fixed << setprecision(0) << total << "\n";
+		    file << "SUBTOTAL.: Rp" << fixed << setprecision(0) << total << "\n";
 		    if (potonganPoin > 0) {
 		    	file << "Potongan poin: Rp" << potonganPoin << "\n";
 		    	total -= potonganPoin;
@@ -1427,6 +1503,7 @@ void Admin::loadRiwayatTransaksi() {
         } else if (baris.find("Tanggal        : ") == 0) {
             string stringTanggal = baris.substr(17); // Ambil setelah "Tanggal        : "
             stringstream ss(stringTanggal);
+            riwayat[indeks].tanggalLengkap = stringTanggal;
             string hari, bulan, tanggal, waktu, tahun;
             ss >> hari >> bulan >> tanggal >> waktu >> tahun;
             riwayat[indeks].tanggal = tanggal;
@@ -2256,8 +2333,11 @@ void Admin::menuAdmin() {
     while (true) {
         cout << "\n" << string(40, '-') << endl;
 	    cout << left << setw(13) << "" << "MENU ADMIN";
-	    cout << "\n" << string(40, '-') << endl;
-    
+	    cout << "\n" << string(40, '-');
+    	
+    	tampilkanDashboard();
+        cout << endl;
+                	
         cout << "1. Pengaturan Akun" << endl;
         cout << "2. Lihat Semua Riwayat Transaksi" << endl;
         cout << "3. Lihat Data Users" << endl;
