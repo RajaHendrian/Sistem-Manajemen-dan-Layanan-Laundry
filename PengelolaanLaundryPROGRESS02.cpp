@@ -1314,7 +1314,7 @@ void LaundrySystem::checkPromo() {
     			ss >> diskon;
                // diskon = stod(baris.substr(pos1 + 1, pos2 - pos1 - 1));
                 string masaBerlaku = baris.substr(pos2 + 1);
-                double diskonRP = (diskon / 100) * totalBiaya;
+                double diskonRP = totalBiaya - (diskon / 100) * totalBiaya;
                 
             
                 
@@ -1322,7 +1322,7 @@ void LaundrySystem::checkPromo() {
            			adaPromo = true;
            			if (nomorPromo == 1) cout << "PROMO!" << endl;
 	                cout << nomorPromo << ". " << namaPromo << endl;
-	                cout << "   Diskon: " << diskon << "%" << " : Rp " << diskonRP << endl;
+	                cout << "   Diskon: " << diskon << "%" << " : Rp " << (diskon / 100) * totalBiaya << endl;
 	                cout << "   Berlaku sampai: " << masaBerlaku << endl;
 	                cout << string(30, '-') << endl;
 	                nomorPromo++;
