@@ -2085,7 +2085,7 @@ void Admin::buatPromo() {
         
         // Validasi format sederhana (panjang dan karakter '-')
         if (masaBerlaku.length() != 10 || masaBerlaku[4] != '-' || masaBerlaku[7] != '-') {
-            cout << "Format tidak valid! Gunakan format yyyy-mm-dd (contoh: 2025-12-31)" << endl;
+            cout << "Format tidak valid! Gunakan format yyyy-mm-dd (contoh: 2025-01-31)" << endl;
         } else {
             // Validasi angka pada posisi yang tepat
             bool formatValid = true;
