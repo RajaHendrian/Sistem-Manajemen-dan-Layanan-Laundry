@@ -1385,7 +1385,9 @@ void Customer::checkPromo() {
     if (!adaPromo) {
         totalSetelahPromo = 0;
         return;
-    }
+    } else {
+    	TOTAL = totalSetelahPromo;
+	}
 }
 
 // Struk transaksi
@@ -1422,7 +1424,6 @@ void Customer::tampilkanStruk(const string& metodePembayaran, const string& kode
     cout << endl;
     checkPromo();
     TOTAL = totalBiaya;
-    TOTAL = totalSetelahPromo;
     if (totalSetelahPromo > 0) {
         cout << "\nTOTAL KESELURUHAN SETELAH PROMO: Rp " << fixed << setprecision(0) << TOTAL << endl;
     }
@@ -2401,6 +2402,8 @@ void Admin::menuAdmin() {
             menuPromo();
         } else if (pilihan == 0) {
             cout << "Logout berhasil. Terima kasih!" << endl;
+            system("pause");
+        	system("cls");
             break;
         } else {
             cout << "Input tidak valid!" << endl;
