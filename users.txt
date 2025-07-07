@@ -1,0 +1,40 @@
+=========================
+Nama       : admin
+Username   : admin
+Password   : admin
+Role       : admin
+Poin       : 0
+Alamat     : admin
+No.Telepon : 08123456789
+=========================
+
+=========================
+Nama       : Raja
+Username   : raja
+Password   : 160
+Role       : customer
+Poin       : 0
+Alamat     : Umbulharjo
+No.Telepon : 082287116014
+=========================
+
+=========================
+Nama       : Dede
+Username   : dede
+Password   : 171
+Role       : customer
+Poin       : 800
+Alamat     : Yogyakarta
+No.Telepon : 081270257163
+=========================
+
+=========================
+Nama       : Rivaldi
+Username   : rivaldi
+Password   : 166
+Role       : customer
+Poin       : 600
+Alamat     : Banguntapan
+No.Telepon : 085190003320
+=========================
+

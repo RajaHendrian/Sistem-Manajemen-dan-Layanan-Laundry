@@ -6,6 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <algorithm>
+#include <vector>
 using namespace std;
 
 const int MAX_USERS = 100;
@@ -615,7 +616,6 @@ void Customer::pengaturanAkun(User userArr[], int &indeks, int jumlahPengguna) {
             break;
         case 0:
             selesai = true;
-            system("cls");
             break;
         }
     }
@@ -647,9 +647,11 @@ void Customer::ulasanRating() {
     cin.ignore();
     getline(cin, komentar);
     cout << "Ulasan ditambahkan." << endl;
+    system("pause");
     ofstream file("ulasanRating.txt", ios::app);
     if (!file.is_open()) {
         cout << "Gagal membuka file untuk menyimpan komentar dan rating!" << endl;
+        system("pause");
         return;
     }
     file << user[indeksAktif].username << " " << rating << " " << komentar << endl;
@@ -669,6 +671,7 @@ void Customer::tambahKeKeranjang(const PesananItem& item) {
         keranjangLayanan[jumlahKeranjang++] = item;
         tampilkanRingkasanItem(item);
         cout << "\nItem berhasil ditambahkan ke keranjang!" << endl;
+        cout << endl;
     }
 }
 
@@ -977,6 +980,8 @@ void Customer::prosesMenuLayanan() {
                             case 4: jenisEwallet = "DANA"; break;
                             default:
                                 cout << "Pilihan E-Wallet tidak valid.\n";
+                                system("pause");
+        						system("cls");
                                 return;
                         }
                         metode = "E-Wallet - " + jenisEwallet;
@@ -984,6 +989,8 @@ void Customer::prosesMenuLayanan() {
                     }
                     default:
                         cout << "Pilihan metode pembayaran tidak valid.\n";
+                        system("pause");
+        				system("cls");
                         return;
                 }
                 stringstream ss;
@@ -998,7 +1005,6 @@ void Customer::prosesMenuLayanan() {
                 return;
             }
             case 0:
-            	system("cls");
                 break;
             case 11: {
             	string keyword;
@@ -1008,15 +1014,13 @@ void Customer::prosesMenuLayanan() {
 			
 			    cariLayananByNama(keyword);
 			    cout << endl;
-			    system("pause");
-	            system("cls");
 	            break;
 			}
             default:
                 cout << "\nPilihan tidak valid. Silakan coba lagi.\n\n";
-                system("pause");
-                system("cls");
         }
+    	system("pause");
+        system("cls");
     } while (pilihan != 0);
 }
 
@@ -1400,23 +1404,29 @@ void Customer::loadPromo() {
     ifstream file("promo.txt");
     jumlahPromo = 0;
     string line;
-    while (getline(file, line)) {
-        if (line.find("Nama Promo") != string::npos) {
-        	daftarPromo[jumlahPromo].namaPromo = line.substr(line.find(":") + 2);
-            getline(file, line); stringstream ss(line.substr(line.find(":") + 2));
-            ss >> daftarPromo[jumlahPromo].diskon;
-            getline(file, line); string tanggal = line.substr(line.find(":") + 2);
-            getline(file, line); string bulan = line.substr(line.find(":") + 2);
-            getline(file, line); string tahun = line.substr(line.find(":") + 2);
-            getline(file, line);
-            daftarPromo[jumlahPromo].masaBerlaku = tanggal + "-" + bulan + "-" + tahun;
-            jumlahPromo++;
-        }
-    }
     
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string nama, diskonStr, tanggal;
+
+        getline(ss, nama, '|');
+        getline(ss, diskonStr, '|');
+        getline(ss, tanggal, '|');
+
+        float diskon;
+        stringstream convert(diskonStr);
+        convert >> diskon;
+
+        daftarPromo[jumlahPromo].namaPromo = nama;
+        daftarPromo[jumlahPromo].diskon = diskon;
+        daftarPromo[jumlahPromo].masaBerlaku = tanggal;
+
+        jumlahPromo++;
+    }
     
     file.close();
 }
+
 
 void Customer::checkPromo() {
     loadPromo();
@@ -1481,6 +1491,9 @@ void Customer::tampilkanStruk(const string& metodePembayaran, const string& kode
     cout << endl;
     checkPromo();
     TOTAL = totalBiaya;
+    if (totalSetelahPromo != totalBiaya) {
+    	TOTAL = totalSetelahPromo;
+	}
     if (totalSetelahPromo > 0) {
         cout << "\nTOTAL KESELURUHAN SETELAH PROMO: Rp " << fixed << setprecision(0) << TOTAL << endl;
     }
@@ -1807,7 +1820,6 @@ void Admin::dataUser() {
             case 1: lihatUserAdmin(); break;
             case 2: lihatUserPengguna(); break;
             case 0: 
-            	system("cls");
 				return;
             default: 
 				cout << "Pilihan tidak valid!" << endl; 
@@ -2123,65 +2135,75 @@ void Admin::simpanRiwayatKeFile() {
 
 void Admin::buatPromo() {
     string namaPromo, masaBerlaku;
-    int tahun, bulan, tanggal;
     float diskon;
-    cout << "\n--- BUAT PROMO BARU ---" << endl;
+    
+    cout << "\n=== BUAT PROMO BARU ===" << endl;
+    
     cout << "Masukkan nama promo: ";
-    cin.ignore();
+    cin.ignore(); 
     getline(cin, namaPromo);
+    
     do {
-        cout << "Masukkan besaran diskon (0.1-100) %: ";
+        cout << "Masukkan besaran diskon (0.1-100): ";
         cin >> diskon;
+        
         if (diskon < 0.1 || diskon > 100) {
             cout << "Input tidak valid! Masukkan angka 0.1-100." << endl;
         }
     } while (diskon < 0.1 || diskon > 100);
-    do {
-        cout << "Masukkan masa berlaku" << endl;
-        cout << "Tahun: ";
-        cin >> tahun;
-        cout << "Bulan: ";
-        cin >> bulan;
-        cout << "Tanggal: ";
-        cin >> tanggal;
-        if (bulan < 1 || bulan > 12 || tanggal < 1 || tanggal > 31) {
-            cout << "Tanggal atau bulan tidak valid!" << endl << endl;
-        } else {
-            break;
-        }
-       
-		 
-    } while (true);
-    stringstream ss, ss1, ss2;
-    ss << tanggal;
-    ss1 << bulan;
-    ss2 << tahun;
-    string tgl = ss.str();
-    string bln = ss1.str();
-    string thn = ss2.str();
-    masaBerlaku = tgl + "-" + bln + "-" + thn;
     
-    cout << "\n--- KONFIRMASI PROMO ---" << endl;
+    do {
+        cout << "Masukkan masa berlaku (yyyy-mm-dd): ";
+        cin >> masaBerlaku;
+        
+        if (masaBerlaku.length() != 10 || masaBerlaku[4] != '-' || masaBerlaku[7] != '-') {
+            cout << "Format tidak valid! Gunakan format yyyy-mm-dd (contoh: 2025-01-31)" << endl;
+        } else {
+            bool formatValid = true;
+            for (int i = 0; i < 10; i++) {
+                if (i == 4 || i == 7) continue; 
+                if (!isdigit(masaBerlaku[i])) {
+                    formatValid = false;
+                    break;
+                }
+            }
+            
+            if (!formatValid) {
+                cout << "Format tidak valid! Gunakan format yyyy-mm-dd dengan angka yang benar" << endl;
+            } else {
+                string bulanStr = masaBerlaku.substr(5, 2);
+                string tanggalStr = masaBerlaku.substr(8, 2);
+                int bulan = atoi(bulanStr.c_str());
+                int tanggal = atoi(tanggalStr.c_str());
+                
+                if (bulan < 1 || bulan > 12 || tanggal < 1 || tanggal > 31) {
+                    cout << "Tanggal atau bulan tidak valid!" << endl;
+                } else {
+                    break; 
+                }
+            }
+        }
+    } while (true);
+    
+    cout << "\n=== KONFIRMASI PROMO ===" << endl;
     cout << "Nama Promo   : " << namaPromo << endl;
     cout << "Diskon       : " << diskon << "%" << endl;
     cout << "Masa Berlaku : " << masaBerlaku << endl;
     cout << "\nApakah data promo sudah benar? (y/n): ";
+    
     char konfirmasi;
     cin >> konfirmasi;
+    
     if (konfirmasi == 'y' || konfirmasi == 'Y') {
         ofstream file("promo.txt", ios::app);
         if (!file.is_open()) {
             cout << "Gagal membuka file promo.txt!" << endl;
             return;
         }
-        file << "====================================" << endl;
-        file << "Nama Promo : " << namaPromo << endl;
-        file << "Diskon     : " << diskon << endl;
-        file << "Tanggal    : " << tanggal << endl;
-        file << "Bulan      : " << bulan << endl;
-        file << "Tahun      : " << tahun << endl;
-        file << "====================================\n" << endl;
+        
+        file << namaPromo << "|" << diskon << "|" << masaBerlaku << endl;
         file.close();
+        
         cout << "Promo berhasil dibuat dan disimpan!" << endl;
     } else {
         cout << "Pembuatan promo dibatalkan." << endl;
@@ -2194,146 +2216,139 @@ void Admin::lihatPromo() {
         cout << "Tidak ada file promo atau gagal membuka file!" << endl;
         return;
     }
+    
     cout << "\n" << string(50, '=') << endl;
     cout << left << setw(15) << "" << "DAFTAR PROMO";
     cout << "\n" << string(50, '=') << endl;
-    string line;
-    daftarPromo[100];
+    
+    string baris;
     int nomorPromo = 1;
     bool adaPromo = false;
     
-    
-    while (getline(file, line)) {
-        if (line.find("Nama Promo") != string::npos) {
-        	adaPromo = true;
-        	daftarPromo[jumlahPromo].namaPromo = line.substr(line.find(":") + 2);
-            getline(file, line); stringstream ss(line.substr(line.find(":") + 2));
-            ss >> daftarPromo[jumlahPromo].diskon;
+    while (getline(file, baris)) {
+        if (!baris.empty()) {
+            adaPromo = true;
             
-            getline(file, line); string tanggal = line.substr(line.find(":") + 2);
-            getline(file, line); string bulan = line.substr(line.find(":") + 2);
-            getline(file, line); string tahun = line.substr(line.find(":") + 2);
-            getline(file, line);
+            size_t pos1 = baris.find('|');
+            size_t pos2 = baris.find('|', pos1 + 1);
             
-            daftarPromo[jumlahPromo].masaBerlaku = tanggal + "-" + bulan + "-" + tahun;
-            
-            cout << nomorPromo << ". " << daftarPromo[jumlahPromo].namaPromo << endl;
-            cout << "   Diskon        : " << daftarPromo[jumlahPromo].diskon << "%" << endl;
-            cout << "   Berlaku sampai: " << daftarPromo[jumlahPromo].masaBerlaku << endl;
-            cout << string(30, '-') << endl;
-            nomorPromo++;
+            if (pos1 != string::npos && pos2 != string::npos) {
+                string namaPromo = baris.substr(0, pos1);
+                string diskonStr = baris.substr(pos1 + 1, pos2 - pos1 - 1);
+                string masaBerlaku = baris.substr(pos2 + 1);
+                
+                cout << nomorPromo << ". " << namaPromo << endl;
+                cout << "   Diskon: " << diskonStr << "%" << endl;
+                cout << "   Berlaku sampai: " << masaBerlaku << endl;
+                cout << string(30, '-') << endl;
+                nomorPromo++;
+            }
         }
     }
     
     if (!adaPromo) {
         cout << "Belum ada promo yang tersedia." << endl;
     }
+    
     file.close();
 }
 
 void Admin::hapusPromo() {
-    ifstream file("promo.txt");
-    if (!file.is_open()) {
+    ifstream fileInput("promo.txt");
+    if (!fileInput.is_open()) {
         cout << "Tidak ada file promo atau gagal membuka file!" << endl;
         return;
     }
-    daftarPromo[MAX_PROMO];
-    string tanggal[100];
-    string bulan[100];
-    string tahun[100];
-    int jumlahPromo = 0;
-    int nomorPromo = 1;
-    string line;
+    
+    vector<string> daftarPromo;
+    string baris;
+    
+    while (getline(fileInput, baris)) {
+        if (!baris.empty()) {
+            daftarPromo.push_back(baris);
+        }
+    }
+    fileInput.close();
+    
+    if (daftarPromo.empty()) {
+        cout << "Tidak ada promo yang tersedia untuk dihapus." << endl;
+        return;
+    }
     
     cout << "\n" << string(50, '=') << endl;
     cout << left << setw(15) << "" << "HAPUS PROMO";
     cout << "\n" << string(50, '=') << endl;
-    while (getline(file, line)) {
-        if (line.find("Nama Promo") != string::npos) {
-        	string namaPromo = line.substr(line.find(":") + 2);
-            getline(file, line); string diskon = line.substr(line.find(":") + 2);
-            getline(file, line); string tanggal1 = line.substr(line.find(":") + 2);
-            getline(file, line); string bulan1 = line.substr(line.find(":") + 2);
-            getline(file, line); string tahun1 = line.substr(line.find(":") + 2);
-            getline(file, line);
-            tanggal[jumlahPromo] = tanggal1;
-            bulan[jumlahPromo] = bulan1;
-            tahun[jumlahPromo] = tahun1;
+    
+    for (size_t i = 0; i < daftarPromo.size(); i++) {
+        size_t pos1 = daftarPromo[i].find('|');
+        size_t pos2 = daftarPromo[i].find('|', pos1 + 1);
+        
+        if (pos1 != string::npos && pos2 != string::npos) {
+            string namaPromo = daftarPromo[i].substr(0, pos1);
+            string diskonStr = daftarPromo[i].substr(pos1 + 1, pos2 - pos1 - 1);
+            string masaBerlaku = daftarPromo[i].substr(pos2 + 1);
             
-            string masaBerlaku = tanggal1 + "-" + bulan1 + "-" + tahun1;
-            
-            daftarPromo[jumlahPromo].namaPromo = namaPromo;
-            stringstream ss (diskon); 
-			ss >> daftarPromo[jumlahPromo].diskon;
-			daftarPromo[jumlahPromo].masaBerlaku = masaBerlaku;
-            
-            cout << nomorPromo << ". " << namaPromo << endl;
-            cout << "   Diskon        : " << diskon << "%" << endl;
+            cout << (i + 1) << ". " << namaPromo << endl;
+            cout << "   Diskon: " << diskonStr << "%" << endl;
             cout << "   Berlaku sampai: " << masaBerlaku << endl;
             cout << string(30, '-') << endl;
-            nomorPromo++;
-            jumlahPromo++;
         }
     }
     
-    if (jumlahPromo == 0) {
-        cout << "Tidak ada promo yang tersedia untuk dihapus.\n" << endl;
-        system("pause");
-        system("cls");
-        return;
-    }
-    
     cout << "0. Batal hapus promo" << endl << endl;
+    
     int pilihan;
     cout << "Pilih nomor promo yang akan dihapus: ";
     cin >> pilihan;
+    
     if (pilihan == 0) {
-        cout << "Penghapusan promo dibatalkan.\n" << endl;
-        system("pause");
-        system("cls");
+        cout << "Penghapusan promo dibatalkan." << endl;
         return;
     }
-    if (pilihan < 1 || pilihan > jumlahPromo) {
-        cout << "Pilihan tidak valid!\n" << endl;
-        system("pause");
-        system("cls");
+    
+    if (pilihan < 1 || pilihan > (int)daftarPromo.size()) {
+        cout << "Pilihan tidak valid!" << endl;
         return;
     }
+    
     int indeksHapus = pilihan - 1;
-        string namaPromo = daftarPromo[indeksHapus].namaPromo;
-        double diskonStr = daftarPromo[indeksHapus].diskon;
-        string masaBerlaku = daftarPromo[indeksHapus].masaBerlaku;
-        cout << "\n--- KONFIRMASI HAPUS PROMO ---" << endl;
+    size_t pos1 = daftarPromo[indeksHapus].find('|');
+    size_t pos2 = daftarPromo[indeksHapus].find('|', pos1 + 1);
+    
+    if (pos1 != string::npos && pos2 != string::npos) {
+        string namaPromo = daftarPromo[indeksHapus].substr(0, pos1);
+        string diskonStr = daftarPromo[indeksHapus].substr(pos1 + 1, pos2 - pos1 - 1);
+        string masaBerlaku = daftarPromo[indeksHapus].substr(pos2 + 1);
+        
+        cout << "\n=== KONFIRMASI HAPUS PROMO ===" << endl;
         cout << "Promo yang akan dihapus:" << endl;
         cout << "Nama Promo   : " << namaPromo << endl;
         cout << "Diskon       : " << diskonStr << "%" << endl;
         cout << "Masa Berlaku : " << masaBerlaku << endl;
         cout << "\nApakah Anda yakin ingin menghapus promo ini? (y/n): ";
+        
         char konfirmasi;
         cin >> konfirmasi;
+        
         if (konfirmasi == 'y' || konfirmasi == 'Y') {
-            jumlahPromo--;
-            ofstream file("promo.txt");
-            if (!file.is_open()) {
+            daftarPromo.erase(daftarPromo.begin() + indeksHapus);
+            
+            ofstream fileOutput("promo.txt");
+            if (!fileOutput.is_open()) {
                 cout << "Gagal menyimpan perubahan ke file!" << endl;
                 return;
             }
-            for (int i = 0; i < jumlahPromo; i++) {
-            	if (i != indeksHapus) {
-	                file << "====================================" << endl;
-			        file << "Nama Promo : " << daftarPromo[i].namaPromo << endl;
-			        file << "Diskon     : " << daftarPromo[i].diskon << endl;
-			        file << "Tanggal    : " << tanggal[i] << endl;
-			        file << "Bulan      : " << bulan[i] << endl;
-			        file << "Tahun      : " << tahun[i] << endl;
-			        file << "====================================\n" << endl;
-				}
+            
+            for (size_t i = 0; i < daftarPromo.size(); i++) {
+                fileOutput << daftarPromo[i] << endl;
             }
-	        file.close();
+            fileOutput.close();
+            
             cout << "Promo '" << namaPromo << "' berhasil dihapus!" << endl;
         } else {
             cout << "Penghapusan promo dibatalkan." << endl;
         }
+    }
 }
 
 

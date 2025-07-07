@@ -1,0 +1,100 @@
+=========================
+Kode Transaksi : RDR1751915558
+Tanggal        : 2025-07-08
+Nama Pelanggan : Raja
+Telepon        : 082287116014
+Alamat         : Umbulharjo
+Metode Bayar   : Cash
+Status         : Diterima
+-------------------------
+- Cuci Umum | Cuci Kering | Campuran | 5.0 kg x Rp5000 = Rp25000
+
+TOTAL: Rp25000
+=========================
+
+=========================
+Kode Transaksi : RDR1751915688
+Tanggal        : 2025-07-08
+Nama Pelanggan : Dede
+Telepon        : 081270257163
+Alamat         : Yogyakarta
+Metode Bayar   : Qris
+Status         : Selesai
+-------------------------
+- Khusus Barang | Cuci Sepatu Reguler | Air Jordan | 2.0 pasang x Rp40000 = Rp80000
+
+TOTAL: Rp80000
+=========================
+
+=========================
+Kode Transaksi : RDR1751915768
+Tanggal        : 2025-07-08
+Nama Pelanggan : Rivaldi
+Telepon        : 085190003320
+Alamat         : Banguntapan
+Metode Bayar   : Transfer
+Status         : Diterima
+-------------------------
+- Dry Cleaning | Jas Formal | Armani | 1.0 helai x Rp60000 = Rp60000
+
+TOTAL: Rp60000
+=========================
+
+=========================
+Kode Transaksi : RDR1751915558
+Tanggal        : 2025-07-04
+Nama Pelanggan : Raja
+Telepon        : 082287116014
+Alamat         : Umbulharjo
+Metode Bayar   : Cash
+Status         : Selesai
+-------------------------
+- Cuci Umum | Cuci Kering | Campuran | 5.0 kg x Rp5000 = Rp25000
+
+TOTAL: Rp25000
+=========================
+
+=========================
+Kode Transaksi : RDR1751915688
+Tanggal        : 2025-07-05
+Nama Pelanggan : Dede
+Telepon        : 081270257163
+Alamat         : Yogyakarta
+Metode Bayar   : Qris
+Status         : Selesai
+-------------------------
+- Khusus Barang | Cuci Sepatu Reguler | Air Jordan | 2.0 pasang x Rp40000 = Rp80000
+
+TOTAL: Rp80000
+=========================
+
+=========================
+Kode Transaksi : RDR1751915768
+Tanggal        : 2025-07-06
+Nama Pelanggan : Rivaldi
+Telepon        : 085190003320
+Alamat         : Banguntapan
+Metode Bayar   : Transfer
+Status         : Selesai
+-------------------------
+- Dry Cleaning | Jas Formal | Armani | 1.0 helai x Rp60000 = Rp60000
+
+TOTAL: Rp60000
+=========================
+
+=========================
+Kode Transaksi : RDR1751918108
+Tanggal        : 2025-07-08
+Nama Pelanggan : Raja
+Telepon        : 082287116014
+Alamat         : Umbulharjo
+Metode Bayar   : Cash
+Status         : Diterima
+-------------------------
+- Cuci Umum | Setrika Saja | Baju | 2.0 kg x Rp4000 = Rp8000
+SUBTOTAL.: Rp8000
+Potongan poin: Rp330
+Promo: Rp1600
+
+TOTAL: Rp6070
+=========================
