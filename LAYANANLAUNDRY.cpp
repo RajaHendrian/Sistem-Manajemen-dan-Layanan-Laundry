@@ -444,7 +444,7 @@ int Customer::registrasiPengguna() {
     cout << "" << string(40, '-') << endl;
     cout << left << setw(13) << "" << "REGISTRASI";
     cout << "\n" << string(40, '-') << endl;
-    penggunaBaru.role == "customer";
+    penggunaBaru.role = "customer";
     
     cout << "Nama          : ";
     cin.ignore();
