@@ -9,10 +9,10 @@
 using namespace std;
 
 const int MAX_USERS = 100;
-const int MAX_KERANJANG = 50;
+const int MAX_KERANJANG = 100;
 const int MAX_RIWAYAT = 100;
-const int MAX_PROMO = 20;
-const int MAX_LAYANAN = 50;
+const int MAX_PROMO = 100;
+const int MAX_LAYANAN = 100;
 
 struct PesananItem {
     string namaLayanan;
@@ -180,19 +180,26 @@ class Customer {
 public:
     int indeksAktif;
     User user[MAX_USERS];
+    Riwayat riwayat[MAX_RIWAYAT];
     int jumlahPengguna;
     Layanan layanan[MAX_LAYANAN];
     int jumlahLayanan;
-
+	int jumlahData;
+	
     Customer() {
         jumlahPengguna = 0;
         indeksAktif = -1;
+        jumlahData = 0;
         dataLayanan(layanan, jumlahLayanan);
     }
 
-	int binarySearchLayanan(const string& namaLayananDicari);
+	/*int binarySearchLayanan(const string& namaLayananDicari);
 	void tampilkanHasilBinaryLayanan(const string& namaLayananDicari);
-	void sortLayananByNama();
+	void sortLayananByNama();*/
+	
+	void checkStatusCucian();
+	
+	void cariLayananByNama(const string &keyword);
 	
     int loadUsers();
     void saveUsers();
@@ -216,7 +223,9 @@ public:
     void tampilkanKeranjang();
     void hapusItemKeranjang();
     void tampilkanRingkasanItem(const PesananItem& item);
-
+	
+	void loadRiwayatTransaksi();
+	
     void prosesMenuLayanan();
     void tampilkanDaftarLayanan();
     void tampilkanLayananCuciUmum();
@@ -248,7 +257,6 @@ public:
 
 class Admin : public Customer {
 public:
-    Layanan layanan[MAX_LAYANAN];
     int jumlahLayanan;
 
     Admin() {
@@ -258,17 +266,20 @@ public:
         jumlahLayanan = 0;
     }
 
-    Riwayat riwayat[MAX_RIWAYAT];
     int jumlahData;
+    Riwayat riwayat[MAX_RIWAYAT];
     Promo daftarPromo[MAX_PROMO];
 	
+	void sortRiwayatByTanggalTerbaru();
+	
+	void loadRiwayatTransaksi();
 	void PengaturanAkun();
-	void cariRiwayatTransaksiLinear(const string& keyword);
 	void cariUserLinear(const string& keyword);
-	void sortLayananByNama();
+	void sortKodeTransaksi();
+	int binarySearchRiwayat(const string& keyword);
+	void tampilkanHasilBinaryKode(const string& keyword);
     void tampilkanDashboard();
     void bacaRiwayatLayanan();
-    void loadRiwayatTransaksi();
     void lihatUserAdmin();
     void lihatUserPengguna();
     void dataUser();
@@ -311,29 +322,29 @@ public:
     void prosesMenuUtama();
 };
 
-// Insertion Sort untuk mengurutkan layanan berdasarkan nama (Ascii)
-void Customer::sortLayananByNama() {
-    for (int i = 1; i < jumlahLayanan; ++i) {
-        Layanan temp = layanan[i];
+// Insertion Sort untuk mengurutkan riwayat berdasarkan kode transaksi 
+void Admin::sortKodeTransaksi() {
+    for (int i = 1; i < jumlahData; ++i) {
+        Riwayat temp = riwayat[i];
         int j = i - 1;
 
-        while (j >= 0 && layanan[j].namaLayanan > temp.namaLayanan) {
-            layanan[j + 1] = layanan[j];
+        while (j >= 0 && riwayat[j].kode > temp.kode) {
+            riwayat[j + 1] = riwayat[j];
             --j;
         }
 
-        layanan[j + 1] = temp;
+        riwayat[j + 1] = temp;
     }
 }
 
-// Binary search untuk mencari jenis layanan
-int Customer::binarySearchLayanan(const string& keyword) {
-	sortLayananByNama();
+// Binary search untuk mencari riwayat transaksi berdasarkan kode transaksi
+int Admin::binarySearchRiwayat(const string& keyword) {
+	sortKodeTransaksi();
     int kiri = 0;
-    int kanan = jumlahLayanan - 1;
+    int kanan = jumlahData - 1;
     while (kiri <= kanan) {
         int tengah = (kanan + kiri) / 2;
-        string namaTengah = layanan[tengah].namaLayanan;
+        string namaTengah = riwayat[tengah].kode;
         if (namaTengah == keyword) {
             return tengah;
         } else if (namaTengah < keyword) {
@@ -346,17 +357,15 @@ int Customer::binarySearchLayanan(const string& keyword) {
 }
 
 // Tampilkan hasil search
-void Customer::tampilkanHasilBinaryLayanan(const string& keyword) {
-    int idx = binarySearchLayanan(keyword);
+void Admin::tampilkanHasilBinaryKode(const string& keyword) {
+	int idx = binarySearchRiwayat(keyword);
     if (idx != -1) {
-        cout << "\n--- LAYANAN DITEMUKAN ---" << endl;
-        cout << "Nama Layanan : " << layanan[idx].namaLayanan << endl;
-        cout << "Kategori     : " << layanan[idx].kategori << endl;
-        cout << "Harga        : Rp " << layanan[idx].harga << endl;
-        cout << "Satuan       : " << layanan[idx].satuan << endl;
+        cout << "\n--- RIWAYAT DITEMUKAN ---" << endl;
+        cout << riwayat[idx].detailTransaksi << endl;
     } else {
-        cout << "Layanan " << keyword << " tidak ditemukan!" << endl;
+        cout << "Tidak ada riwayat transaksi yang cocok dengan kata kunci " << keyword << endl << endl;
     }
+	
 }
 
 int Customer::loadUsers() {
@@ -435,14 +444,7 @@ int Customer::registrasiPengguna() {
     cout << "" << string(40, '-') << endl;
     cout << left << setw(13) << "" << "REGISTRASI";
     cout << "\n" << string(40, '-') << endl;
-    cout << "Role (admin/customer): ";
-    cin >> penggunaBaru.role;
-    if(penggunaBaru.role != "admin" && penggunaBaru.role != "customer") {
-        cout << "\nRole tidak valid. Gunakan 'admin' atau 'customer'.\n\n";
-        system("pause");
-    	system("cls");
-        return jumlahPengguna;
-    } 
+    penggunaBaru.role == "customer";
     
     cout << "Nama          : ";
     cin.ignore();
@@ -738,7 +740,7 @@ void Customer::tampilkanMenuCustomer() {
     cout << "1. Akun\n";
     cout << "2. Lihat Poin\n";
     cout << "3. Lihat Layanan Laundry\n";
-    cout << "4. Cari Layanan Laundry\n";
+    cout << "4. Check Status Cucian\n";
     cout << "0. Logout\n\n";
     cout << "Pilih: ";
 }
@@ -779,15 +781,8 @@ void Customer::prosesMenuCustomer() {
         	system("cls");
             prosesMenuLayanan();
         } else if(subPilihan == 4) {
-            string keyword;
-		    cout << "Masukkan nama layanan yang ingin dicari: ";
-		    cin.ignore();
-		    getline(cin, keyword);
-		
-		    tampilkanHasilBinaryLayanan(keyword);
-		    cout << endl;
-		    system("pause");
-            system("cls");
+        	system("cls");
+            checkStatusCucian();
         } else if(subPilihan == 0) {
             cout << "\nLogout berhasil.\n\n";
             system("pause");
@@ -801,6 +796,30 @@ void Customer::prosesMenuCustomer() {
         }
     }
 }
+
+void Customer::checkStatusCucian() {
+    loadRiwayatTransaksi();  
+
+    string nama = user[indeksAktif].nama;
+    bool ditemukan = false;
+
+    for (int i = 0; i < jumlahData; ++i) {
+        if (riwayat[i].nama == nama && riwayat[i].status != "Selesai") {
+            cout << "\n--- STATUS CUCIAN ---\n";
+            cout << riwayat[i].detailTransaksi << endl;
+            ditemukan = true;
+        }
+    }
+
+    if (!ditemukan) {
+        cout << "Saat ini Anda tidak memiliki cucian yang sedang dalam proses.\n";
+    }
+
+    cout << endl;
+    system("pause");
+    system("cls");
+}
+
 
 void Customer::tampilkanDaftarLayanan() {
     cout << "" << string(40, '-') << endl;
@@ -816,9 +835,35 @@ void Customer::tampilkanDaftarLayanan() {
     cout << "8.  Lihat Keranjang" << endl;
     cout << "9.  Hapus Item dari Keranjang" << endl;
     cout << "10. Checkout & Pembayaran" << endl;
+    cout << "11. Cari Layanan Laundry\n";
     cout << "0.  Keluar" << endl;
     cout << string(40, '-') << endl;
 }
+
+// Linear Search untuk Mencari Nama Layanan
+void Customer::cariLayananByNama(const string& keyword) {
+    bool ditemukan = false;
+    string keywordLower = keyword;
+    transform(keywordLower.begin(), keywordLower.end(), keywordLower.begin(), ::tolower); 
+
+    for (int i = 0; i < jumlahLayanan; ++i) {
+        string namaLower = layanan[i].namaLayanan;
+        transform(namaLower.begin(), namaLower.end(), namaLower.begin(), ::tolower);
+
+        if (namaLower.find(keywordLower) != string::npos) {
+            ditemukan = true;
+            cout << "\n--- LAYANAN DITEMUKAN ---" << endl;
+            cout << "Nama Layanan : " << layanan[i].namaLayanan << endl;
+            cout << "Kategori     : " << layanan[i].kategori << endl;
+            cout << "Harga        : Rp " << layanan[i].harga << endl;
+            cout << "Satuan       : " << layanan[i].satuan << endl;
+        }
+    }
+    if (!ditemukan) {
+        cout << "Layanan dengan kata kunci " << keyword << " tidak ditemukan!" << endl;
+    }
+}
+
 
 void Customer::prosesMenuLayanan() {
     int pilihan;
@@ -955,6 +1000,18 @@ void Customer::prosesMenuLayanan() {
             case 0:
             	system("cls");
                 break;
+            case 11: {
+            	string keyword;
+			    cout << "Masukkan nama layanan yang ingin dicari: ";
+			    cin.ignore();
+			    getline(cin, keyword);
+			
+			    cariLayananByNama(keyword);
+			    cout << endl;
+			    system("pause");
+	            system("cls");
+	            break;
+			}
             default:
                 cout << "\nPilihan tidak valid. Silakan coba lagi.\n\n";
                 system("pause");
@@ -1545,19 +1602,52 @@ void Admin::tampilkanDashboard() {
     cout << "Jumlah Pesanan Hari Ini         : " << totalPesananHariIni << endl;
     cout << "Jumlah Customer Pesan Hari Ini  : " << jumlahCustomerHariIni << endl;
     cout << "Pendapatan Selesai Hari Ini     : Rp" << fixed << setprecision(0) << totalPendapatanHariIni << endl;
-    cout << "===============================\n";
+    cout << "=====================================\n";
 }
 
-void Admin::bacaRiwayatLayanan() {
+
+
+void Customer::loadRiwayatTransaksi() {
     ifstream file("riwayat_transaksi.txt");
     if (!file.is_open()) {
-        cerr << "Gagal membuka file\n";
+        jumlahData = 0;
         return;
     }
     string baris;
-    while (getline(file, baris)) {
-        cout << baris << endl;
+    int indeks = 0;
+    bool sedangMembacaTransaksi = false;
+    string detailLengkap = "";
+    while (getline(file, baris) && indeks < MAX_RIWAYAT) {
+        if (sedangMembacaTransaksi) {
+            detailLengkap += baris + "\n";
+        }
+        if (baris.find("Kode Transaksi : ") == 0) {
+            riwayat[indeks].kode = baris.substr(17);
+            sedangMembacaTransaksi = true;
+            detailLengkap = baris + "\n";
+        } else if (baris.find("Tanggal        : ") == 0) {
+            string stringTanggal = baris.substr(17);
+            riwayat[indeks].tanggalLengkap = stringTanggal;
+        } else if (baris.find("Nama Pelanggan : ") == 0) {
+            riwayat[indeks].nama = baris.substr(17);
+        } else if (baris.find("Telepon        : ") == 0) {
+            riwayat[indeks].telepon = baris.substr(17);
+        } else if (baris.find("Alamat         : ") == 0) {
+            riwayat[indeks].alamat = baris.substr(17);
+        } else if (baris.find("Metode Bayar   : ") == 0) {
+            riwayat[indeks].metode = baris.substr(17);
+        } else if (baris.find("Status         : ") == 0) {
+            riwayat[indeks].status = baris.substr(17);
+        } else if (baris == "=========================") {
+            if (sedangMembacaTransaksi) {
+                riwayat[indeks].detailTransaksi = detailLengkap;
+                indeks++;
+                sedangMembacaTransaksi = false;
+                detailLengkap = "";
+            }
+        }
     }
+    jumlahData = indeks;
     file.close();
 }
 
@@ -1852,7 +1942,7 @@ void Admin::cariByStatus() {
 }
 
 // Fungsi cari riwayat transaksi (linear search)
-void Admin::cariRiwayatTransaksiLinear(const string& keyword) {
+/*void Admin::cariRiwayatTransaksiLinear(const string& keyword) {
 	loadRiwayatTransaksi();
     bool ditemukan = false;
     for (int i = 0; i < jumlahData; ++i) {
@@ -1865,7 +1955,7 @@ void Admin::cariRiwayatTransaksiLinear(const string& keyword) {
     if (!ditemukan) {
         cout << "Tidak ada riwayat transaksi yang cocok dengan kata kunci " << keyword << endl << endl;
     }
-}
+}*/
 
 // Fungsi cari data user (linear search)
 void Admin::cariUserLinear(const string& keyword) {
@@ -1874,7 +1964,7 @@ void Admin::cariUserLinear(const string& keyword) {
         if (user[i].username == keyword) {
             ditemukan = true;
             cout << "\n--- USER DITEMUKAN ---" << endl;
-            cout << "Nama   : " << user[i].nama << endl;
+            cout << "Nama       : " << user[i].nama << endl;
             cout << "Username   : " << user[i].username << endl;
             cout << "Role       : " << user[i].role << endl;
             cout << "Alamat     : " << user[i].alamat << endl;
@@ -1910,13 +2000,37 @@ void Admin::menuCariRiwayat() {
 				cout << "Masukkan kode transaksi : ";
 				cin.ignore();
 				getline(cin, keyword);
-	            cariRiwayatTransaksiLinear(keyword); 
+	            tampilkanHasilBinaryKode(keyword);
 				break;
 			}
             case 4: cariByStatus(); break;
             case 0: return;
             default: cout << "Pilihan tidak valid!" << endl;
         }
+    }
+}
+
+// Sortir Riwayat Transaksi Berdasarkan Tanggal 
+void Admin::sortRiwayatByTanggalTerbaru() {
+    for (int i = 1; i < jumlahData; ++i) {
+        Riwayat temp = riwayat[i];
+        int j = i - 1;
+        while (j >= 0 && riwayat[j].tanggalLengkap < temp.tanggalLengkap) {
+            riwayat[j + 1] = riwayat[j];
+            --j;
+        }
+        riwayat[j + 1] = temp;
+    }
+}
+
+void Admin::bacaRiwayatLayanan() {
+    sortRiwayatByTanggalTerbaru();
+    if (jumlahData == 0) {
+        cout << "Tidak ada riwayat transaksi yang tersedia." << endl;
+        return;
+    }
+    for (int i = 0; i < jumlahData; ++i) {
+        cout << riwayat[i].detailTransaksi << endl;
     }
 }
 
@@ -1949,20 +2063,22 @@ void Admin::updateStatus() {
     cout << "Nama Pelanggan: " << riwayat[indeksDitemukan].nama << endl;
     cout << "Status Saat Ini: " << riwayat[indeksDitemukan].status << endl;
     cout << "\nPilih status baru:" << endl;
-    cout << "1. Pending" << endl;
-    cout << "2. Dalam Proses" << endl;
-    cout << "3. Selesai" << endl;
-    cout << "4. Dibatalkan" << endl;
+    cout << "1. Dicuci" << endl;
+    cout << "2. Disetrika" << endl;
+    cout << "3. Siap Ambil" << endl;
+    cout << "4. Diantar" << endl;
+    cout << "5. Selesai" << endl;
     cout << "0. Batal Update" << endl;
     int pilihanStatus;
     cout << "Pilihan: ";
     cin >> pilihanStatus;
     string statusBaru;
     switch(pilihanStatus) {
-        case 1: statusBaru = "Pending"; break;
-        case 2: statusBaru = "Dalam Proses"; break;
-        case 3: statusBaru = "Selesai"; break;
-        case 4: statusBaru = "Dibatalkan"; break;
+        case 1: statusBaru = "Dicuci"; break;
+        case 2: statusBaru = "Disetrika"; break;
+        case 3: statusBaru = "Siap Ambil"; break;
+        case 4: statusBaru = "Diantar"; break;
+        case 5: statusBaru = "Selesai"; break;
         case 0: cout << "Update status dibatalkan." << endl; return;
         default: cout << "Pilihan tidak valid!" << endl; return;
     }
@@ -2330,9 +2446,9 @@ void Admin::hitungPendapatanBulanan() {
     cout << "\n" << string(40, '=') << endl;
     cout << "LAPORAN PENDAPATAN BULANAN" << endl;
     cout << string(40, '=') << endl;
-    cout << "Bulan/Tahun    : " << namaBulan[bulanInput-1] << " " << tahunInput << endl;
+    cout << "Bulan/Tahun             : " << namaBulan[bulanInput-1] << " " << tahunInput << endl;
     cout << "Jumlah Transaksi Selesai: " << jumlahTransaksiSelesai << endl;
-    cout << "Pendapatan bulan ini: Rp" << totalPendapatan << endl;
+    cout << "Pendapatan bulan ini    : Rp" << totalPendapatan << endl;
     cout << string(40, '=') << endl;
     if (jumlahTransaksiSelesai == 0) {
         cout << "Tidak ada transaksi yang selesai pada bulan tersebut." << endl;
@@ -2340,7 +2456,7 @@ void Admin::hitungPendapatanBulanan() {
 }
 
 void Admin::PengaturanAkun() {
-    pengaturanAkun(user, indeksAktif, jumlahPengguna);
+    pengaturanAkun(user, indeksAktif, jumlahPengguna);	
     saveUsers();
 }
 
@@ -2352,9 +2468,9 @@ void Admin::menuAdmin() {
         tampilkanDashboard();
         cout << "1. Pengaturan " << endl;
         cout << "2. Lihat Semua Riwayat Transaksi" << endl;
-        cout << "3. Lihat Data Users" << endl;
-        cout << "4. Cari Data Users" << endl;
-        cout << "5. Cari riwayat Transaksi" << endl;
+        cout << "3. Cari riwayat Transaksi" << endl;
+        cout << "4. Lihat Data Users" << endl;
+        cout << "5. Cari Data Users" << endl;
         cout << "6. Update Status" << endl;
         cout << "7. Pendapatan perbulan" << endl;
         cout << "8. Lihat Ulasan" << endl;
@@ -2373,16 +2489,16 @@ void Admin::menuAdmin() {
             cout << left << setw(10) << "" << "RIWAYAT TRANSAKSI";
             cout << "\n" << string(40, '-') << endl;
             bacaRiwayatLayanan();
-        } else if (pilihan == 3) {
+        } else if (pilihan == 4) {
         	system("cls");
             dataUser();
-        } else if (pilihan == 4) {
+        } else if (pilihan == 5) {
         	string keyword;
 			cout << "Masukkan username : ";
 			cin.ignore();
 			getline(cin, keyword);
             cariUserLinear(keyword);
-        } else if (pilihan == 5) {
+        } else if (pilihan == 3) {
         	system("cls");
         	menuCariRiwayat();
         } else if (pilihan == 6) {
